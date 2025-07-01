@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>من سيربح Pi؟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .game-container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .pi-icon {
+            font-size: 3rem;
+            color: #ffd700;
+        }
+
+        .score-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 25px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .question-container {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .question-number {
+            font-size: 1.1rem;
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid transparent;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .option:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .option.correct {
+            background: rgba(76, 175, 80, 0.8);
+            border-color: #4caf50;
+            animation: correctPulse 0.6s ease;
+        }
+
+        .option.incorrect {
+            background: rgba(244, 67, 54, 0.8);
+            border-color: #f44336;
+            animation: incorrectShake 0.6s ease;
+        }
+
+        .option.disabled {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes incorrectShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feedback.show {
+            opacity: 1;
+        }
+
+        .feedback.success {
+            background: rgba(76, 175, 80, 0.3);
+            color: #c8e6c9;
+        }
+
+        .feedback.error {
+            background: rgba(244, 67, 54, 0.3);
+            color: #ffcdd2;
+        }
+
+        .final-result {
+            text-align: center;
+            background: rgba(255, 215, 0, 0.2);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #ffd700;
+        }
+
+        .final-score {
+            font-size: 2rem;
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(238, 90, 82, 0.4);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            .title {
+                font-size: 2rem;
+            }
+            .game-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">من سيربح Pi؟</h1>
+            <div class="pi-icon">🟣</div>
+        </div>
+
+        <div class="score-container">
+            <div class="score">النقاط: <span id="score">0</span> Pi 🟣</div>
+        </div>
+
+        <div id="game-area">
+            <div class="question-container">
+                <div class="question-number" id="question-number">السؤال 1 من 10</div>
+                <div class="question-text" id="question-text"></div>
+                <div class="options-container" id="options-container"></div>
+                <div class="feedback" id="feedback"></div>
+            </div>
+        </div>
+
+        <div id="final-result" class="final-result hidden">
+            <h2>🎉 تهانينا! 🎉</h2>
+            <div class="final-score" id="final-score"></div>
+            <p>أنت رابح اليوم 💰</p>
+            <button class="restart-btn" onclick="restartGame()">العب مرة أخرى</button>
+        </div>
+    </div>
+
+    <script>
+        // بنك الأسئلة الشامل - مجالات متنوعة
+        const questionBank = [
+            // تكنولوجيا وعملات رقمية
+            {
+                question: "ما هو الرمز الرسمي لعملة Pi Network؟",
+                options: ["π", "PI", "🟣", "P"],
+                correct: 0,
+                category: "تكنولوجيا"
+            },
+            {
+                question: "في أي عام تم إطلاق مشروع Pi Network؟",
+                options: ["2018", "2019", "2020", "2021"],
+                correct: 1,
+                category: "تكنولوجيا"
+            },
+            {
+                question: "ما هي أول عملة رقمية في العالم؟",
+                options: ["إيثيريوم", "بيتكوين", "لايتكوين", "ريبل"],
+                correct: 1,
+                category: "تكنولوجيا"
+            },
+            {
+                question: "ما هو معنى AI في التكنولوجيا؟",
+                options: ["الذكاء الاصطناعي", "التطبيقات التفاعلية", "الإنترنت المتقدم", "الألعاب الذكية"],
+                correct: 0,
+                category: "تكنولوجيا"
+            },
+            
+            // جغرافيا
+            {
+                question: "ما هي أكبر قارة في العالم؟",
+                options: ["أفريقيا", "آسيا", "أوروبا", "أمريكا الشمالية"],
+                correct: 1,
+                category: "جغرافيا"
+            },
+            {
+                question: "ما هي عاصمة مصر؟",
+                options: ["الإسكندرية", "القاهرة", "أسوان", "الجيزة"],
+                correct: 1,
+                category: "جغرافيا"
+            },
+            {
+                question: "أي نهر يُعتبر الأطول في العالم؟",
+                options: ["الأمازون", "النيل", "الميسيسيبي", "اليانغتسي"],
+                correct: 1,
+                category: "جغرافيا"
+            },
+            {
+                question: "كم عدد القارات في العالم؟",
+                options: ["5", "6", "7", "8"],
+                correct: 2,
+                category: "جغرافيا"
+            },
+            
+            // علوم
+            {
+                question: "ما هو العنصر الأكثر وفرة في الكون؟",
+                options: ["الأكسجين", "الكربون", "الهيدروجين", "النيتروجين"],
+                correct: 2,
+                category: "علوم"
+            },
+            {
+                question: "كم عدد عظام جسم الإنسان البالغ؟",
+                options: ["206", "208", "210", "204"],
+                correct: 0,
+                category: "علوم"
+            },
+            {
+                question: "ما هو الغاز الذي نتنفسه؟",
+                options: ["الكربون", "الهيدروجين", "الأكسجين", "النيتروجين"],
+                correct: 2,
+                category: "علوم"
+            },
+            {
+                question: "ما هي سرعة الضوء تقريباً؟",
+                options: ["200,000 كم/ث", "300,000 كم/ث", "400,000 كم/ث", "500,000 كم/ث"],
+                correct: 1,
+                category: "علوم"
+            },
+            
+            // تاريخ
+            {
+                question: "في أي عام سقطت الإمبراطورية العثمانية؟",
+                options: ["1920", "1922", "1918", "1924"],
+                correct: 1,
+                category: "تاريخ"
+            },
+            {
+                question: "من هو أول رئيس للولايات المتحدة الأمريكية؟",
+                options: ["توماس جيفرسون", "جون آدامز", "جورج واشنطن", "بنيامين فرانكلين"],
+                correct: 2,
+                category: "تاريخ"
+            },
+            {
+                question: "في أي قرن عاش ابن سينا؟",
+                options: ["القرن التاسع", "القرن العاشر", "القرن الحادي عشر", "القرن الثامن"],
+                correct: 2,
+                category: "تاريخ"
+            },
+            
+            // رياضة
+            {
+                question: "كم عدد اللاعبين في فريق كرة القدم؟",
+                options: ["9", "10", "11", "12"],
+                correct: 2,
+                category: "رياضة"
+            },
+            {
+                question: "في أي مدينة أقيمت أولمبياد 2016؟",
+                options: ["لندن", "ريو دي جانيرو", "طوكيو", "بكين"],
+                correct: 1,
+                category: "رياضة"
+            },
+            {
+                question: "كم مرة فازت البرازيل بكأس العالم؟",
+                options: ["4", "5", "6", "3"],
+                correct: 1,
+                category: "رياضة"
+            },
+            
+            // أدب وثقافة
+            {
+                question: "من هو مؤلف رواية 'مئة عام من العزلة'؟",
+                options: ["بابلو نيرودا", "غابرييل غارسيا ماركيز", "خورخي لويس بورخيس", "أوكتافيو باث"],
+                correct: 1,
+                category: "أدب"
+            },
+            {
+                question: "ما هي أقدم لغة مكتوبة في العالم؟",
+                options: ["العربية", "الصينية", "السومرية", "المصرية القديمة"],
+                correct: 2,
+                category: "أدب"
+            },
+            
+            // فن وسينما
+            {
+                question: "من رسم لوحة 'الموناليزا'؟",
+                options: ["مايكل أنجلو", "ليوناردو دا فينشي", "بيكاسو", "رافائيل"],
+                correct: 1,
+                category: "فن"
+            },
+            {
+                question: "في أي عام تم إنتاج فيلم 'تايتانيك'؟",
+                options: ["1995", "1996", "1997", "1998"],
+                correct: 2,
+                category: "سينما"
+            },
+            
+            // طبيعة وبيئة
+            {
+                question: "ما هو أكبر حيوان في العالم؟",
+                options: ["الفيل الأفريقي", "الحوت الأزرق", "الزرافة", "القرش الأبيض"],
+                correct: 1,
+                category: "طبيعة"
+            },
+            {
+                question: "كم قلباً للأخطبوط؟",
+                options: ["1", "2", "3", "4"],
+                correct: 2,
+                category: "طبيعة"
+            },
+            
+            // اقتصاد
+            {
+                question: "ما هي العملة الرسمية لليابان؟",
+                options: ["الوون", "الين", "اليوان", "الدولار"],
+                correct: 1,
+                category: "اقتصاد"
+            },
+            {
+                question: "ما هو أكبر بنك في العالم من حيث الأصول؟",
+                options: ["بنك أمريكا", "بنك الصين الصناعي والتجاري", "تشيس", "سيتي بنك"],
+                correct: 1,
+                category: "اقتصاد"
+            },
+            
+            // طعام وتغذية
+            {
+                question: "أي فيتامين يُنتج عند التعرض لأشعة الشمس؟",
+                options: ["فيتامين A", "فيتامين B", "فيتامين C", "فيتامين D"],
+                correct: 3,
+                category: "تغذية"
+            },
+            {
+                question: "ما هو المكون الرئيسي في الخبز؟",
+                options: ["الأرز", "الذرة", "القمح", "الشعير"],
+                correct: 2,
+                category: "تغذية"
+            }
+        ];
+
+        // متغيرات اللعبة
+        let currentQuestion = 0;
+        let score = 0;
+        let gameEnded = false;
+        let currentGameQuestions = [];
+        let usedQuestions = JSON.parse(localStorage.getItem('usedQuestions') || '[]');
+
+        // عناصر DOM
+        const questionNumberEl = document.getElementById('question-number');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackEl = document.getElementById('feedback');
+        const scoreEl = document.getElementById('score');
+        const gameArea = document.getElementById('game-area');
+        const finalResult = document.getElementById('final-result');
+        const finalScoreEl = document.getElementById('final-score');
+
+        // إنشاء أصوات حقيقية
+        function createBeep(frequency, duration, type = 'sine') {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // صوت النجاح
+        function playSuccessSound() {
+            createBeep(800, 0.2);
+            setTimeout(() => createBeep(1000, 0.2), 100);
+            setTimeout(() => createBeep(1200, 0.3), 200);
+        }
+
+        // صوت الفشل
+        function playFailSound() {
+            createBeep(300, 0.5, 'sawtooth');
+        }
+
+        // اختيار أسئلة عشوائية مع تجنب التكرار
+        function selectRandomQuestions() {
+            let availableQuestions = questionBank.filter(q => !usedQuestions.includes(q.question));
+            
+            // إذا استنفدنا معظم الأسئلة، نعيد تعيين المستخدمة جزئياً
+            if (availableQuestions.length < 10) {
+                // نحتفظ فقط بآخر سؤالين مستخدمين
+                usedQuestions = usedQuestions.slice(-2);
+                availableQuestions = questionBank.filter(q => !usedQuestions.includes(q.question));
+            }
+            
+            // خلط الأسئلة المتاحة
+            const shuffled = availableQuestions.sort(() => 0.5 - Math.random());
+            
+            // اختيار 10 أسئلة متنوعة
+            currentGameQuestions = [];
+            const categories = {};
+            
+            for (let question of shuffled) {
+                if (currentGameQuestions.length >= 10) break;
+                
+                // محاولة توزيع الأسئلة على فئات مختلفة
+                if (!categories[question.category] || categories[question.category] < 3) {
+                    currentGameQuestions.push(question);
+                    categories[question.category] = (categories[question.category] || 0) + 1;
+                }
+            }
+            
+            // إذا لم نحصل على 10 أسئلة، نملأ الباقي
+            while (currentGameQuestions.length < 10) {
+                for (let question of shuffled) {
+                    if (!currentGameQuestions.includes(question)) {
+                        currentGameQuestions.push(question);
+                        if (currentGameQuestions.length >= 10) break;
+                    }
+                }
+            }
+            
+            // حفظ الأسئلة المستخدمة
+            currentGameQuestions.forEach(q => {
+                if (!usedQuestions.includes(q.question)) {
+                    usedQuestions.push(q.question);
+                }
+            });
+            
+            localStorage.setItem('usedQuestions', JSON.stringify(usedQuestions));
+        }
+
+        // عرض السؤال الحالي
+        function displayQuestion() {
+            if (currentQuestion >= currentGameQuestions.length) {
+                endGame();
+                return;
+            }
+
+            const question = currentGameQuestions[currentQuestion];
+            
+            questionNumberEl.textContent = `السؤال ${currentQuestion + 1} من ${currentGameQuestions.length}`;
+            questionTextEl.textContent = question.question;
+            
+            optionsContainer.innerHTML = '';
+            feedbackEl.classList.remove('show');
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.onclick = () => selectOption(index);
+                
+                optionsContainer.appendChild(optionElement);
+            });
+        }
+
+        // اختيار إجابة
+        function selectOption(selectedIndex) {
+            if (gameEnded) return;
+
+            const question = currentGameQuestions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            const isCorrect = selectedIndex === question.correct;
+
+            // تعطيل جميع الخيارات
+            options.forEach(option => option.classList.add('disabled'));
+
+            // تلوين الإجابة المختارة
+            if (isCorrect) {
+                options[selectedIndex].classList.add('correct');
+                score += 10;
+                scoreEl.textContent = score;
+                feedbackEl.textContent = "أحسنت! ربحت 10 Pi 🟣";
+                feedbackEl.className = 'feedback success show';
+                playSuccessSound();
+            } else {
+                options[selectedIndex].classList.add('incorrect');
+                options[question.correct].classList.add('correct');
+                feedbackEl.textContent = "إجابة خاطئة، حاول مجدداً";
+                feedbackEl.className = 'feedback error show';
+                playFailSound();
+            }
+
+            // الانتقال للسؤال التالي بعد ثانيتين
+            setTimeout(() => {
+                currentQuestion++;
+                displayQuestion();
+            }, 2000);
+        }
+
+        // إنهاء اللعبة
+        function endGame() {
+            gameEnded = true;
+            gameArea.classList.add('hidden');
+            finalResult.classList.remove('hidden');
+            finalScoreEl.textContent = `${score} Pi 🟣`;
+        }
+
+        // إعادة تشغيل اللعبة
+        function restartGame() {
+            currentQuestion = 0;
+            score = 0;
+            gameEnded = false;
+            
+            scoreEl.textContent = score;
+            gameArea.classList.remove('hidden');
+            finalResult.classList.add('hidden');
+            
+            // اختيار أسئلة جديدة
+            selectRandomQuestions();
+            displayQuestion();
+        }
+
+        // بدء اللعبة
+        selectRandomQuestions();
+        displayQuestion();
+    </script>
+</body>
+</html>
